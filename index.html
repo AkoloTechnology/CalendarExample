@@ -198,7 +198,7 @@
             const eventTagDiv = document.createElement('div');
             eventTagDiv.classList.add('event-tag');
             wrapperEventDiv.appendChild(eventTagDiv);
-            eventTagDiv.style.borderBottomColor  = primaryscolor;
+            eventTagDiv.style.borderBottomColor = primaryscolor;
 
             // Move the event text and popup into the wrapper div
             eventDiv.innerHTML = eventText.replace(/\n/g, '<br>');
@@ -233,20 +233,20 @@
 
             if (!startDayDiv || !endDayDiv) return;
 
-            // Calculate the number of days the event spans in the start month
-            let daysSpannedInCurrentMonth = (startMonth === endMonth) ? endDay - startDay + 1 : new Date(startMonthYear.split(' ')[1], new Date(startMonthYear).getMonth() + 1, 0).getDate() - startDay + 1;
+            function endOfMonth(date) {
+                return new Date(date.getFullYear(), date.getMonth() + 1, 0);            
+            }
 
-            // Add the event for the first part of the week
-            addEventToCalendar(startDayDiv, Math.min(daysSpannedInCurrentMonth, 7 - (startDay % 7)), eventText, imgSrc, primaryscolor, secondarycolor);
-
-            // If the event spans multiple weeks, clone the event for each week
-            let currentDay = startDay + (7 - (startDay % 7));
-            while (currentDay <= daysSpannedInCurrentMonth) {
-                const nextWeekDiv = startCalendar.querySelector(`.day[data-date='${startMonthYear}-${currentDay}']`);
-                if (nextWeekDiv) {
-                    addEventToCalendar(nextWeekDiv, Math.min(7, daysSpannedInCurrentMonth - currentDay + 1), eventText, imgSrc, primaryscolor, secondarycolor);
+            let nextMonthDay = startDay; // Start from the first day of the next monthspans in the next month
+            let endOfStart = startMonth != endMonth ? endOfMonth(new Date(startMonthYear)).getDate() : endDay;
+            console.log(endOfStart)
+            while (nextMonthDay <= endOfStart) {
+                const nextMonthDiv = startCalendar.querySelector(`.day[data-date='${startMonthYear}-${nextMonthDay}']`);
+                let weekday = 7 - new Date(startMonthYear.split(' ')[1], new Date(startMonthYear).getMonth(), nextMonthDay).getDay();
+                if (nextMonthDiv) {
+                    addEventToCalendar(nextMonthDiv, Math.min(weekday, endOfStart - nextMonthDay + 1), eventText, imgSrc, primaryscolor, secondarycolor);
                 }
-                currentDay += 7;
+                nextMonthDay += weekday; // Move to the next week
             }
 
             
@@ -257,7 +257,7 @@
                     const nextMonthDiv = endCalendar.querySelector(`.day[data-date='${endMonthYear}-${nextMonthDay}']`);
                     let weekday = 7 - new Date(endMonthYear.split(' ')[1], new Date(endMonthYear).getMonth(), nextMonthDay).getDay();
                     if (nextMonthDiv) {
-                        addEventToCalendar(nextMonthDiv, Math.min(weekday, endDay - nextMonthDay + 1), eventText, imgSrc);
+                        addEventToCalendar(nextMonthDiv, Math.min(weekday, endDay - nextMonthDay + 1), eventText, imgSrc, primaryscolor, secondarycolor);
                     }
                     nextMonthDay += weekday; // Move to the next week
                 }
@@ -271,8 +271,9 @@
         generateCalendar('septemberCalendar', 'September 2024', 30, 0); // August 2024: 31 days, starts on Thursday
 
         // Example: Adding events
-        addEvent('julyCalendar', 1, 'julyCalendar', 9, 'Example of first\ndate and time', '#00bfff', '#e6f7ff', '/20240710_192840.png');
-        addEvent('julyCalendar', 9, 'julyCalendar', 20, 'Example of second\ndate and time', '#404040', '#d0d0d0', '/20240710_192840.png');
+        //addEvent('julyCalendar', 1, 'julyCalendar', 9, 'Example of first\ndate and time', '#00bfff', '#e6f7ff', '/20240710_192840.png');
+        //addEvent('julyCalendar', 9, 'julyCalendar', 20, 'Example of second\ndate and time', '#404040', '#d0d0d0', '/20240710_192840.png');
+        addEvent('julyCalendar', 6, 'augustCalendar', 20, 'Example of third\ndate and time', '#404040', '#d0d0d0', '/20240710_192840.png');
     </script>
 </body>
 </html>
