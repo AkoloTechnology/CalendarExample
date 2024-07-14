@@ -239,7 +239,6 @@
 
             let nextMonthDay = startDay; // Start from the first day of the next monthspans in the next month
             let endOfStart = startMonth != endMonth ? endOfMonth(new Date(startMonthYear)).getDate() : endDay;
-            console.log(endOfStart)
             while (nextMonthDay <= endOfStart) {
                 const nextMonthDiv = startCalendar.querySelector(`.day[data-date='${startMonthYear}-${nextMonthDay}']`);
                 let weekday = 7 - new Date(startMonthYear.split(' ')[1], new Date(startMonthYear).getMonth(), nextMonthDay).getDay();
