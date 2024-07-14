@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .calendar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            background-color: #ccc;
+            margin: 20px 0;
+            width: 90%;
+            max-width: 960px;
+        }
+        .month-header {
+            grid-column: span 7;
+            background-color: #00bfff;
+            color: white;
+            padding: 10px;
+            font-size: 1.2em;
+        }
+
+        .short-text { 
+            display: none;
+        }
+
+        .day-header {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            overflow: hidden;
+        }
+        .day {
+            background-color: #fff;
+            align-self: stretch;
+            aspect-ratio: 1;
+            border: 1px solid #ccc;
+            position: relative;
+            width: 100%;
+            overflow-y: clip;
+            height: auto;
+        }
+        .day-number {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .event-wrapper {
+            position: relative;
+            top: 25px;
+            bottom: 0;
+        }
+        .event {
+            cursor: pointer;
+            font-size: 0.7em;
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            position: absolute;
+            padding: 10px;
+            white-space: nowrap;
+            left: 5px;
+            right: 5px;
+            z-index: 1;
+            overflow-clip-margin: content-box;
+        }
+
+        .event-tag {
+            cursor: pointer;
+            position: absolute;
+            width: 0; 
+            height: 0; 
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;            
+            border-bottom: 15px solid #000000;
+            top: -15px;
+            left: 10px;
+        }
+
+        .unoccupied-day {
+            background-color: #f2f2f2;
+        }
+
+        .z-top {
+            z-index: 2;
+        }
+
+        @media (max-width: 800px) {
+            .short-text { display: inline-block; }
+            .full-text { display: none; }
+            .event {
+                font-size: 0.6em;
+                padding: 4px;
+            }
+            .day-number {
+                top: 2px;
+                font-size: 0.6em;
+            }
+            .event-wrapper {
+                top: 17px;
+            }
+            .day {
+                aspect-ratio: 1 / 1.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Calendar Example</h1>
+    <div class="calendar-container">
+        <div class="calendar" id="julyCalendar">
+            <!-- July Calendar will be inserted here -->
+        </div>
+        <div class="calendar" id="augustCalendar">
+            <!-- August Calendar will be inserted here -->
+        </div>
+        <div class="calendar" id="septemberCalendar">
+            <!-- August Calendar will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Function to generate a month calendar
+        function generateCalendar(calendarId, monthName, daysInMonth, firstDayOfWeek, nextMonthDays = 0) {
+            const calendar = document.getElementById(calendarId);
+
+            // Create month header
+            const monthHeader = document.createElement('div');
+            monthHeader.classList.add('month-header');
+            monthHeader.innerHTML = monthName;
+            calendar.appendChild(monthHeader);
+
+            // Create day headers
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysOfWeekShgort = ['Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'];
+            for(let weekday = 0; weekday < 7; weekday++) {
+                const fullHeaderDiv = document.createElement('div');
+                fullHeaderDiv.classList.add('day-header','full-text');
+                fullHeaderDiv.innerHTML = daysOfWeek[weekday];
+                calendar.appendChild(fullHeaderDiv);
+                const shortHeaderDiv = document.createElement('div');
+                shortHeaderDiv.classList.add('day-header','short-text');
+                shortHeaderDiv.innerHTML = daysOfWeekShgort[weekday];
+                calendar.appendChild(shortHeaderDiv);
+            }
+
+            // Fill the empty days before the first day of the month
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.classList.add('day', 'unoccupied-day');
+                calendar.appendChild(emptyDiv);
+            }
+
+            // Fill the days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('day');
+                dayDiv.innerHTML = `<span class="day-number">${day}</span>`;
+                dayDiv.setAttribute('data-date', `${monthName}-${day}`);
+                calendar.appendChild(dayDiv);
+            }
+
+            // Fill the empty days after the last day of the month
+            for (let i = 0; i < 7-(daysInMonth+firstDayOfWeek-1)%7-1; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.classList.add('day', 'unoccupied-day');
+                calendar.appendChild(emptyDiv);
+            }
+        }
+
+        // Function to add an event to a specific day div
+        function addEventToCalendar(dayDiv, daysSpanned, eventText, imgSrc, primaryscolor, secondarycolor) {
+
+            // Create event wrapper element
+            const wrapperEventDiv = document.createElement('div');
+            wrapperEventDiv.classList.add('event-wrapper');
+
+            // Adjust eventDiv width based on days spanned
+            wrapperEventDiv.style.width = `${daysSpanned*100}%`;
+
+            // Create event element
+
+            const eventDiv = document.createElement('div');
+            eventDiv.classList.add('event');
+            eventDiv.style.backgroundColor = secondarycolor;
+            eventDiv.style.borderColor = primaryscolor;
+
+            const eventTagDiv = document.createElement('div');
+            eventTagDiv.classList.add('event-tag');
+            wrapperEventDiv.appendChild(eventTagDiv);
+            eventTagDiv.style.borderBottomColor  = primaryscolor;
+
+            // Move the event text and popup into the wrapper div
+            eventDiv.innerHTML = eventText.replace(/\n/g, '<br>');
+
+            wrapperEventDiv.onclick = e => {
+                var other = document.querySelector('.z-top');
+                if(other) other.classList.remove('z-top');
+                e.target.classList.add('z-top');
+            }
+
+            wrapperEventDiv.appendChild(eventDiv);
+
+            wrapperEventDiv.onmouseenter = e => eventDiv.style.backgroundColor = primaryscolor;
+            
+            wrapperEventDiv.onmouseleave = e => eventDiv.style.backgroundColor = secondarycolor;
+
+            // Append event to the day div
+            dayDiv.appendChild(wrapperEventDiv);
+        }
+
+        // Function to add an event to a specific range of days
+        function addEvent(startMonth, startDay, endMonth, endDay, eventText, primaryscolor, secondarycolor, imgSrc) {
+            const startCalendar = document.getElementById(startMonth);
+            const endCalendar = document.getElementById(endMonth);
+
+            // Include the year in the month
+            const startMonthYear = startCalendar.querySelector('.month-header').innerHTML;
+            const endMonthYear = endCalendar.querySelector('.month-header').innerHTML;
+
+            const startDayDiv = startCalendar.querySelector(`.day[data-date='${startMonthYear}-${startDay}']`);
+            const endDayDiv = endCalendar.querySelector(`.day[data-date='${endMonthYear}-${endDay}']`);
+
+            if (!startDayDiv || !endDayDiv) return;
+
+            // Calculate the number of days the event spans in the start month
+            let daysSpannedInCurrentMonth = (startMonth === endMonth) ? endDay - startDay + 1 : new Date(startMonthYear.split(' ')[1], new Date(startMonthYear).getMonth() + 1, 0).getDate() - startDay + 1;
+
+            // Add the event for the first part of the week
+            addEventToCalendar(startDayDiv, Math.min(daysSpannedInCurrentMonth, 7 - (startDay % 7)), eventText, imgSrc, primaryscolor, secondarycolor);
+
+            // If the event spans multiple weeks, clone the event for each week
+            let currentDay = startDay + (7 - (startDay % 7));
+            while (currentDay <= daysSpannedInCurrentMonth) {
+                const nextWeekDiv = startCalendar.querySelector(`.day[data-date='${startMonthYear}-${currentDay}']`);
+                if (nextWeekDiv) {
+                    addEventToCalendar(nextWeekDiv, Math.min(7, daysSpannedInCurrentMonth - currentDay + 1), eventText, imgSrc, primaryscolor, secondarycolor);
+                }
+                currentDay += 7;
+            }
+
+            
+            // If the event spans multiple months
+            if (startMonth !== endMonth) {
+                let nextMonthDay = 1; // Start from the first day of the next monthspans in the next month
+                while (nextMonthDay <= endDay) {
+                    const nextMonthDiv = endCalendar.querySelector(`.day[data-date='${endMonthYear}-${nextMonthDay}']`);
+                    let weekday = 7 - new Date(endMonthYear.split(' ')[1], new Date(endMonthYear).getMonth(), nextMonthDay).getDay();
+                    if (nextMonthDiv) {
+                        addEventToCalendar(nextMonthDiv, Math.min(weekday, endDay - nextMonthDay + 1), eventText, imgSrc);
+                    }
+                    nextMonthDay += weekday; // Move to the next week
+                }
+            }
+        }
+
+
+        // Generate the calendars for July and August 2024
+        generateCalendar('julyCalendar', 'July 2024', 31, 1); // July 2024: 31 days, starts on Monday
+        generateCalendar('augustCalendar', 'August 2024', 31, 4); // August 2024: 31 days, starts on Thursday
+        generateCalendar('septemberCalendar', 'September 2024', 30, 0); // August 2024: 31 days, starts on Thursday
+
+        // Example: Adding events
+        addEvent('julyCalendar', 1, 'julyCalendar', 9, 'Example of first\ndate and time', '#00bfff', '#e6f7ff', '/20240710_192840.png');
+        addEvent('julyCalendar', 9, 'julyCalendar', 20, 'Example of second\ndate and time', '#404040', '#d0d0d0', '/20240710_192840.png');
+    </script>
+</body>
+</html>
